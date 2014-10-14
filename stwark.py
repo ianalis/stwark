@@ -11,7 +11,7 @@ APP_KEY = 'RWmvpkGK4m9tavh4bCfdzsYjH'
 APP_SECRET = 'uCShewTskeuBvt9haLi8LFARSJXkxJsCPNZ3dGwpYz4vuc5Mo9'
 
 class OutputStream(object):
-    def __init__(self, archive_dir):
+    def __init__(self, archive_dir, prefix='data'):
         self.archive_dir = archive_dir
         if not os.path.exists(archive_dir):
             os.makedirs(archive_dir)
@@ -31,9 +31,10 @@ class OutputStream(object):
             self._outfile.close()
 
         self.curhour = base_datetime.replace(minute=0, second=0, microsecond=0)
-        self._outfile = BZ2File(os.path.join(self.archive_dir,
-                                             self.curhour
-                                                 .strftime('data-%y%m%d%H.bz2')),
+        self._outfile = BZ2File(os.path
+                                  .join(self.archive_dir,
+                                        self.curhour
+                                            .strftime('data-%y%m%d%H.json.bz2')),
                                 'w')
         
     def write(self, data):
@@ -62,9 +63,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('oauth_token', help='User OAuth token')
     parser.add_argument('oauth_secret', help='User OAuth secret')
+    parser.add_argument('-p', '--prefix', default='data',
+                        help='Name to start filenames with (default: data)')
     args = parser.parse_args()
 
-    outstream = OutputStream('data/sample')
+    outstream = OutputStream('data/sample', args.prefix)
     outstream.restart(datetime.utcnow())
     while True:
         try:
