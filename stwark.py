@@ -15,6 +15,7 @@ class OutputStream(object):
         self.archive_dir = archive_dir
         if not os.path.exists(archive_dir):
             os.makedirs(archive_dir)
+        self.prefix = prefix
         self.curhour = None
         self._outfile = None
         
@@ -34,7 +35,7 @@ class OutputStream(object):
         self._outfile = BZ2File(os.path
                                   .join(self.archive_dir,
                                         self.curhour
-                                            .strftime('data-%y%m%d%H.json.bz2')),
+                                            .strftime(self.prefix+'-%y%m%d%H.json.bz2')),
                                 'w')
         
     def write(self, data):
