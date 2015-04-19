@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import argparse
+import ConfigParser
 import os
+import sys
 import json
 from datetime import datetime, timedelta
 from twython import TwythonStreamer
 from bz2 import BZ2File
 from requests.exceptions import ChunkedEncodingError, ConnectionError
-
-APP_KEY = 'RWmvpkGK4m9tavh4bCfdzsYjH'
-APP_SECRET = 'uCShewTskeuBvt9haLi8LFARSJXkxJsCPNZ3dGwpYz4vuc5Mo9'
 
 class OutputStream(object):
     def __init__(self, archive_dir, prefix='data'):
@@ -60,20 +59,60 @@ class SampleStreamer(TwythonStreamer):
     def on_error(self, status_code, data):
         print status_code
 
-if __name__ == "__main__":
+def read_settings(args_source=sys.argv):
+    """Read settings from command line and config file"""
+    # read from command line
     parser = argparse.ArgumentParser()
-    parser.add_argument('oauth_token', help='User OAuth token')
-    parser.add_argument('oauth_secret', help='User OAuth secret')
-    parser.add_argument('-p', '--prefix', default='data',
+    parser.add_argument('oauth_token',
+                        nargs='?',
+                        help='User OAuth token')
+    parser.add_argument('oauth_secret', 
+                        nargs='?',
+                        help='User OAuth secret')
+    parser.add_argument('-p', '--prefix',
                         help='Name to start filenames with (default: data)')
-    args = parser.parse_args()
-
-    outstream = OutputStream('data/sample', args.prefix)
+    parser.add_argument('--config',
+                        default='stwark.cfg',
+                        help='Read settings from supplied config file '
+                             '(default: stwark.cfg)')
+    
+    args = parser.parse_args(args_source)
+    
+    # read from config file
+    settings = {
+        'app_key': 'RWmvpkGK4m9tavh4bCfdzsYjH',
+        'app_secret': 'uCShewTskeuBvt9haLi8LFARSJXkxJsCPNZ3dGwpYz4vuc5Mo9',
+        'prefix': 'data',
+    }    
+    config = ConfigParser.SafeConfigParser(settings)
+    if os.path.exists(args.config):
+        config.read(args.config)
+    if config.has_section('stwark'):
+        settings.update(dict(config.items('stwark')))
+     
+    # overwrite settings from config line with command line arguments
+    for key, value in vars(args).items():
+        if value is not None:
+            settings[key] = value
+            
+    if (not 'oauth_token' in settings) or (not 'oauth_secret' in settings):
+        print "Both OAuth token and secret must be defined in either command "\
+              "line or config file"
+        sys.exit(-1)
+        
+    return settings
+    
+if __name__ == "__main__":
+    settings = read_settings()
+    
+    outstream = OutputStream('data/sample', settings['prefix'])
     outstream.restart(datetime.utcnow())
     while True:
         try:
-            streamer = SampleStreamer(APP_KEY, APP_SECRET, 
-                                      args.oauth_token, args.oauth_secret,
+            streamer = SampleStreamer(settings['app_key'], 
+                                      settings['app_secret'], 
+                                      settings['oauth_token'], 
+                                      settings['args.oauth_secret'],
                                       outstream)
             streamer.statuses.sample()
         except (ChunkedEncodingError, ConnectionError):
