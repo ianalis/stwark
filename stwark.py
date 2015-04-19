@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta
 from twython import TwythonStreamer
 from bz2 import BZ2File
-from requests.exceptions import ChunkedEncodingError
+from requests.exceptions import ChunkedEncodingError, ConnectionError
 
 APP_KEY = 'RWmvpkGK4m9tavh4bCfdzsYjH'
 APP_SECRET = 'uCShewTskeuBvt9haLi8LFARSJXkxJsCPNZ3dGwpYz4vuc5Mo9'
@@ -76,5 +76,5 @@ if __name__ == "__main__":
                                       args.oauth_token, args.oauth_secret,
                                       outstream)
             streamer.statuses.sample()
-        except ChunkedEncodingError:
+        except (ChunkedEncodingError, ConnectionError):
             pass
