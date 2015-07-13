@@ -59,7 +59,7 @@ class SampleStreamer(TwythonStreamer):
     def on_error(self, status_code, data):
         print status_code
 
-def read_settings(args_source=sys.argv):
+def read_settings(args_source=sys.argv[1:]):
     """Read settings from command line and config file"""
     # read from command line
     parser = argparse.ArgumentParser()
@@ -99,7 +99,7 @@ def read_settings(args_source=sys.argv):
         print "Both OAuth token and secret must be defined in either command "\
               "line or config file"
         sys.exit(-1)
-        
+    
     return settings
     
 if __name__ == "__main__":
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             streamer = SampleStreamer(settings['app_key'], 
                                       settings['app_secret'], 
                                       settings['oauth_token'], 
-                                      settings['args.oauth_secret'],
+                                      settings['oauth_secret'],
                                       outstream)
             streamer.statuses.sample()
         except (ChunkedEncodingError, ConnectionError):
