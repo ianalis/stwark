@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from twython import TwythonStreamer
 from bz2 import BZ2File
 from requests.exceptions import ChunkedEncodingError, ConnectionError
+from OpenSSL.SSL import ZeroReturnError
 
 class OutputStream(object):
     def __init__(self, archive_dir, prefix='data'):
@@ -115,5 +116,5 @@ if __name__ == "__main__":
                                       settings['oauth_secret'],
                                       outstream)
             streamer.statuses.sample()
-        except (ChunkedEncodingError, ConnectionError):
+        except (ChunkedEncodingError, ConnectionError, ZeroReturnError):
             pass
