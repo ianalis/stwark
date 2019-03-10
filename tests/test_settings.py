@@ -29,7 +29,7 @@ def test_oauth_config():
     """Read both OAuth token and secret from config"""
     f = tempfile.NamedTemporaryFile(delete=False)
     fname = f.name
-    f.write("""
+    f.write(b"""
 [stwark]
 oauth_token = abc
 oauth_secret = 123
@@ -51,13 +51,13 @@ def test_all_config():
     """Read all settings from config"""
     f = tempfile.NamedTemporaryFile(delete=False)
     fname = f.name
-    f.write("""
+    f.write(("""
 [stwark]
 oauth_token = abc
 oauth_secret = 123
 prefix = testpre
 config = {}
-            """.format(fname))
+            """.format(fname)).encode('utf8'))
     f.close()
     
     try:
@@ -75,14 +75,14 @@ def test_mixed_config():
     """Read settings from both command line and config"""
     f = tempfile.NamedTemporaryFile(delete=False)
     fname = f.name
-    f.write("""
+    f.write(("""
 [stwark]
 oauth_token = abc
 oauth_secret = 123
 app_key = xyz
 app_secret = 789
 config = {}
-            """.format(fname))
+            """.format(fname)).encode('utf8'))
     f.close()
     
     try:
@@ -104,11 +104,11 @@ def test_missing_oauth():
     with pytest.raises(SystemExit):
         f = tempfile.NamedTemporaryFile(delete=False)
         fname = f.name
-        f.write("""
+        f.write(("""
 [stwark]
 prefix = testpre
 config = {}
-                """.format(fname))
+                """.format(fname)).encode('utf8'))
         f.close()
         
         try:

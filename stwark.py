@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse
-import ConfigParser
+import configparser
 import os
 import sys
 import json
@@ -27,23 +27,32 @@ class OutputStream(object):
         ----------
         base_datetime : datetime
             Hour of output will be based on this
+        move_current : bool
+            Move current archive file from working dir to archive dir
         """
         if self._outfile:
             self._outfile.close()
 
+        if move_current:
+            if not os.path.exists(self.archive_dir):
+                os.makedirs(self.archive_dir)
+            os.replace(f.name,
+                       os.path.join(self.archive_dir, 
+                                    os.path.basename(f.name)))
+
         self.curhour = base_datetime.replace(minute=0, second=0, microsecond=0)
         self._outfile = BZ2File(os.path
-                                  .join(self.archive_dir,
+                                  .join(self.working_dir,
                                         self.curhour
                                             .strftime(self.prefix+'-%y%m%d%H.json.bz2')),
-                                'w')
+                                'a')
         
     def write(self, data):
-        self._outfile.writelines((json.dumps(data), '\r\n'))        
+        self._outfile.write((json.dumps(data) + '\r\n').encode('utf8'))        
         
 class SampleStreamer(TwythonStreamer):
     def __init__(self, app_key, app_secret, oauth_token, oauth_token_secret,
-                 outstream, archive_dir='data/sample'):
+                 outstream):
         super(SampleStreamer, self).__init__(app_key, app_secret, oauth_token, 
                                              oauth_token_secret)
         
@@ -58,7 +67,7 @@ class SampleStreamer(TwythonStreamer):
         self.outstream.write(data)
 
     def on_error(self, status_code, data):
-        print status_code
+        print(status_code)
 
 def read_settings(args_source=sys.argv[1:]):
     """Read settings from command line and config file"""
@@ -85,7 +94,7 @@ def read_settings(args_source=sys.argv[1:]):
         'app_secret': 'uCShewTskeuBvt9haLi8LFARSJXkxJsCPNZ3dGwpYz4vuc5Mo9',
         'prefix': 'data',
     }    
-    config = ConfigParser.SafeConfigParser(settings)
+    config = configparser.SafeConfigParser(settings)
     if os.path.exists(args.config):
         config.read(args.config)
     if config.has_section('stwark'):
@@ -97,8 +106,8 @@ def read_settings(args_source=sys.argv[1:]):
             settings[key] = value
             
     if (not 'oauth_token' in settings) or (not 'oauth_secret' in settings):
-        print "Both OAuth token and secret must be defined in either command "\
-              "line or config file"
+        print("Both OAuth token and secret must be defined in either command "
+              "line or config file")
         sys.exit(-1)
     
     return settings
