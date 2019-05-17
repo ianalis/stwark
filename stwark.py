@@ -63,7 +63,7 @@ class SampleStreamer(TwythonStreamer):
         if 'created_at' in data:
             created_at = datetime.strptime(data['created_at'], 
                                            '%a %b %d %H:%M:%S +0000 %Y') 
-            if created_at > self.outstream.curhour + timedelta(hours=1):
+            if created_at >= self.outstream.curhour + timedelta(hours=1):
                 self.outstream.restart(created_at, move_current=True)
         self.outstream.write(data)
 
